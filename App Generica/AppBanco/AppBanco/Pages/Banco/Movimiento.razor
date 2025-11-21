@@ -1,0 +1,155 @@
+@page "/Movimiento"
+@using System.ComponentModel.DataAnnotations
+@using Data
+@inject HttpClient Http
+<h3 class="mb-4">Registrar Movimiento</h3>
+@if (mensaje != null)
+{
+    <div class="alert alert-success mt-4">@mensaje</div>
+}
+<div class="accordion" id="accordionMovimiento">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscribir" aria-expanded="true">
+                Nuevo Movimiento
+            </button>
+        </h2>
+        <div id="collapseInscribir" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <EditForm Model="@movimiento" OnValidSubmit="RegistrarMovimiento" class="needs-validation">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-3" />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cuenta</label>
+                            <InputSelect @bind-Value="movimiento.idcuenta" class="form-control">
+                                <option selected disabled>-- Selecciona Cuenta--</option>
+                                @foreach (var item in cuentas)
+                                {
+                                    <option value=@item.idcuenta>@item.idcuenta - @item.numero</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => movimiento.idcuenta)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Sucursal</label>
+                            <InputSelect @bind-Value="movimiento.idsucursal" class="form-control">
+                                <option selected disabled>-- Selecciona Sucursal--</option>
+                                @foreach (var item in sucursales)
+                                {
+                                    <option value=@item.idSucursal>@item.idSucursal - @item.sucursal</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => movimiento.idsucursal)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tipo Movimiento</label>
+                            <InputSelect @bind-Value="movimiento.idtipomovimiento" class="form-control">
+                                <option selected disabled>-- Selecciona Tipo Movimiento--</option>
+                                @foreach (var item in tiposmovimiento)
+                                {
+                                    <option value=@item.idtipomovimiento>@item.idtipomovimiento - @item.tipomovimiento</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => movimiento.idtipomovimiento)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Valor</label>
+                            <InputNumber @bind-Value="movimiento.valor" class="form-control" />
+                            <ValidationMessage For="@(() => movimiento.valor)" class="text-danger" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Descripción</label>
+                            <InputTextArea class="form-control" @bind-Value="movimiento.descripcion" rows="3" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Registrar</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscritos" aria-expanded="false" aria-controls="collapseTwo" @onclick="MovimientosRegistrados">
+                Movimientos Registrados
+            </button>
+        </h2>
+        <div id="collapseInscritos" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                @if (movimientos is not null && movimientos.Any())
+                {
+                    <table class="table table-striped table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Codigo</th>
+                                <th>Fecha</th>
+                                <th>Numero Cuenta</th>
+                                <th>Sucursal</th>
+                                <th>Tipo Movimiento</th>
+                                <th>Valor</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in movimientos)
+                            {
+                                <tr>
+                                    <td>@item.idmovimiento</td>
+                                    <td>@item.fecha</td>
+                                    <td>@item.numeroCuenta</td>
+                                    <td>@item.sucursal</td>
+                                    <td>@item.tipomovimiento</td>
+                                    <td>@item.valor</td>
+                                    <td>@item.descripcion</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">No hay movimientos registrados aún.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    private MovimientoModel movimiento = new();
+    private List<MovimientoModel> movimientos = new();
+    private List<CuentaModel> cuentas = new();
+    private List<SucursalModel> sucursales = new();
+    private List<TipoMovimientoModel> tiposmovimiento = new();
+    private string? mensaje;
+    protected override async Task OnInitializedAsync()
+    {
+        cuentas = await Http.GetFromJsonAsync<List<CuentaModel>>("http://localhost:3000/api/banco/cuentas") ?? new();
+        sucursales = await Http.GetFromJsonAsync<List<SucursalModel>>("http://localhost:3000/api/banco/sucursales") ?? new();
+        tiposmovimiento = await Http.GetFromJsonAsync<List<TipoMovimientoModel>>("http://localhost:3000/api/banco/tipomovimientos") ?? new();
+    }
+    private async Task RegistrarMovimiento()
+    {
+        var response = await Http.PostAsJsonAsync("http://localhost:3000/api/banco/movimiento", movimiento);
+        if (response.IsSuccessStatusCode)
+        {
+            mensaje = "¡Movimiento registrado exitosamente!";
+            movimiento = new();
+        }
+        else
+        {
+            mensaje = "Error al registrar movimiento.";
+        }
+    }
+    private async Task MovimientosRegistrados()
+    {
+        try
+        {
+            movimientos = await Http.GetFromJsonAsync<List<MovimientoModel>>("http://localhost:3000/api/banco/movimientos") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener movimientos: {ex.Message}");
+        }
+    }
+}
+

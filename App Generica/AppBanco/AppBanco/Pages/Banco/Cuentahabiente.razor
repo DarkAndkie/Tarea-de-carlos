@@ -1,0 +1,155 @@
+@page "/Cuentahabiente"
+@using System.ComponentModel.DataAnnotations
+@using Data
+@inject HttpClient Http
+<h3 class="mb-4">Registrar Cuentahabiente</h3>
+@if (mensaje != null)
+{
+    <div class="alert alert-success mt-4">@mensaje</div>
+}
+<div class="accordion" id="accordionCuentahabiente">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscribir" aria-expanded="true">
+                Registrar Cuentahabiente
+            </button>
+        </h2>
+        <div id="collapseInscribir" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <EditForm Model="@cuentahabiente" OnValidSubmit="RegistrarCuentahabiente" class="needs-validation">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-3" />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre</label>
+                            <InputText class="form-control" @bind-Value="cuentahabiente.nombre" />
+                            <ValidationMessage For="@(() => cuentahabiente.nombre)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tipo Documento</label>
+                            <InputSelect @bind-Value="cuentahabiente.idtipodocumento" class="form-control">
+                                <option selected disabled>-- Selecciona --</option>
+                                @foreach (var item in tiposdocumento)
+                                {
+                                    <option value=@item.idtipodocumento>@item.idtipodocumento - @item.tipodocumento (@item.sigla)</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => cuentahabiente.idtipodocumento)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Documento</label>
+                            <InputText class="form-control" @bind-Value="cuentahabiente.documento" />
+                            <ValidationMessage For="@(() => cuentahabiente.documento)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ciudad</label>
+                            <InputSelect @bind-Value="cuentahabiente.idciudad" class="form-control">
+                                <option selected disabled>-- Selecciona --</option>
+                                @foreach (var item in ciudades)
+                                {
+                                    <option value=@item.idciudad>@item.idciudad - @item.ciudad</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => cuentahabiente.idciudad)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Dirección</label>
+                            <InputText class="form-control" @bind-Value="cuentahabiente.direccion" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <InputText class="form-control" @bind-Value="cuentahabiente.telefono" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Clave</label>
+                            <InputText type="password" class="form-control" @bind-Value="cuentahabiente.clave" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Registrar</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscritos" aria-expanded="false" aria-controls="collapseTwo" @onclick="CuentahabientesRegistrados">
+                Cuentahabientes Registrados
+            </button>
+        </h2>
+        <div id="collapseInscritos" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                @if (cuentahabientes is not null && cuentahabientes.Any())
+                {
+                    <table class="table table-striped table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Codigo</th>
+                                <th>Nombre</th>
+                                <th>Tipo Documento</th>
+                                <th>Documento</th>
+                                <th>Dirección</th>
+                                <th>Teléfono</th>
+                                <th>Ciudad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in cuentahabientes)
+                            {
+                                <tr>
+                                    <td>@item.idcuentahabiente</td>
+                                    <td>@item.nombre</td>
+                                    <td>@item.tipodocumento (@item.sigla)</td>
+                                    <td>@item.documento</td>
+                                    <td>@item.direccion</td>
+                                    <td>@item.telefono</td>
+                                    <td>@item.ciudad</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">No hay cuentahabientes registrados aún.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    private CuentahabienteModel cuentahabiente = new();
+    private List<CuentahabienteModel> cuentahabientes = new();
+    private List<TipoDocumentoModel> tiposdocumento = new();
+    private List<CiudadModel> ciudades = new();
+    private string? mensaje;
+    protected override async Task OnInitializedAsync()
+    {
+        tiposdocumento = await Http.GetFromJsonAsync<List<TipoDocumentoModel>>("http://localhost:3000/api/banco/tipodocumentos") ?? new();
+        ciudades = await Http.GetFromJsonAsync<List<CiudadModel>>("http://localhost:3000/api/banco") ?? new();
+    }
+    private async Task RegistrarCuentahabiente()
+    {
+        var response = await Http.PostAsJsonAsync("http://localhost:3000/api/banco/cuentahabiente", cuentahabiente);
+        if (response.IsSuccessStatusCode)
+        {
+            mensaje = "¡Cuentahabiente registrado exitosamente!";
+            cuentahabiente = new();
+        }
+        else
+        {
+            mensaje = "Error al registrar cuentahabiente.";
+        }
+    }
+    private async Task CuentahabientesRegistrados()
+    {
+        try
+        {
+            cuentahabientes = await Http.GetFromJsonAsync<List<CuentahabienteModel>>("http://localhost:3000/api/banco/cuentahabientes") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener cuentahabientes: {ex.Message}");
+        }
+    }
+}
+

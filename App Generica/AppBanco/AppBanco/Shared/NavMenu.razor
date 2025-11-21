@@ -1,0 +1,79 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">AppBanco</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Inicio
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Ciudad">
+                <span class="bi bi-option" aria-hidden="true"></span> Ciudad
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TipoSucursal">
+                <span class="bi bi-person-fill-add" aria-hidden="true"></span> Tipo Sucursal
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Sucursal">
+                <span class="bi bi-prescription2" aria-hidden="true"></span> Sucursal
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Cuenta">
+                <span class="bi bi-prescription2" aria-hidden="true"></span> Cuenta
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Prestamo">
+                <span class="bi bi-prescription2" aria-hidden="true"></span> Prestamos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TipoDocumento">
+                <span class="bi bi-file-text" aria-hidden="true"></span> Tipo Documento
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Cuentahabiente">
+                <span class="bi bi-person" aria-hidden="true"></span> Cuentahabiente
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Titular">
+                <span class="bi bi-person-check" aria-hidden="true"></span> Titular
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="TipoMovimiento">
+                <span class="bi bi-arrow-left-right" aria-hidden="true"></span> Tipo Movimiento
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Movimiento">
+                <span class="bi bi-cash-coin" aria-hidden="true"></span> Movimiento
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

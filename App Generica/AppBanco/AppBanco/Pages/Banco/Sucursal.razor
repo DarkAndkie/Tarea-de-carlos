@@ -1,0 +1,175 @@
+﻿@page "/Sucursal"
+@using System.ComponentModel.DataAnnotations
+@using Data
+@inject HttpClient Http
+<h3 class="mb-4">Registrar Sucursal</h3>
+@if (mensaje != null)
+{
+    <div class="alert alert-success mt-4">@mensaje</div>
+}
+<div class="accordion" id="accordionUniversidades">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscribir" aria-expanded="true">
+                Nueva Sucursal
+            </button>
+        </h2>
+        <div id="collapseInscribir" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <EditForm Model="@sucursal" OnValidSubmit="RegistrarSucursal" class="needs-validation">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-3" />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Sucursal</label>
+                            <InputText class="form-control" @bind-Value="sucursal.sucursal" />
+                            <ValidationMessage For="@(() => sucursal.sucursal)" class="text-danger" />
+                        </div>
+                        @* <div class="col-md-6 mb-3">
+                            <label class="form-label">Codigo Ciudad</label>
+                            <InputNumber class="form-control" @bind-Value="sucursal.idCiudad" />
+                            <ValidationMessage For="@(() => sucursal.idCiudad)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Codigo Tipo Sucursal</label>
+                            <InputNumber class="form-control" @bind-Value="sucursal.idtiposucursal" />
+                            <ValidationMessage For="@(() => sucursal.idtiposucursal)" class="text-danger" />
+                        </div> *@
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Codigo Ciudad</label>
+                            <InputSelect @bind-Value="sucursal.idCiudad" class="form-control">
+                                <option selected disabled>-- Selecciona --</option>
+                                @foreach (var item in ciudades)
+                                {
+                                    <option value=@item.idciudad>@item.idciudad - @item.ciudad</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Codigo Tipo Sucursal</label>
+                            <InputSelect @bind-Value="sucursal.idtiposucursal" class="form-control">
+                                <option selected disabled>-- Selecciona --</option>
+                                @foreach (var item in tipos)
+                                {
+                                    <option value=@item.idtiposucursal>@item.idtiposucursal - @item.tipoSucursal</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Direccion</label>
+                            <InputText class="form-control" @bind-Value="sucursal.direccion" />
+                            <ValidationMessage For="@(() => sucursal.direccion)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Telefono</label>
+                            <InputText class="form-control" @bind-Value="sucursal.telefono" />
+                            <ValidationMessage For="@(() => sucursal.telefono)" class="text-danger" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Horario</label>
+                            <InputText class="form-control" @bind-Value="sucursal.horario" />
+                            <ValidationMessage For="@(() => sucursal.horario)" class="text-danger" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Registrar</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInscritos" aria-expanded="false" aria-controls="collapseTwo" @onclick="SucursalesRegistradas">
+                Sucursales Registradas
+            </button>
+        </h2>
+        <div id="collapseInscritos" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                @if (sucursalesregistradas is not null && sucursalesregistradas.Any())
+                {
+                    <table class="table table-striped table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Codigo Sucursal</th>
+                                <th>Sucursal</th>
+                                <th>Codigo Ciudad</th>
+                                <th>Tipo sucursal</th>
+                                <th>Direccion</th>
+                                <th>Telefono</th>
+                                <th>Horario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in sucursalesregistradas)
+                            {
+                                <tr>
+                                    <td>@item.idSucursal</td>
+                                    <td>@item.sucursal</td>
+                                    <td>@item.idCiudad</td>
+                                    <td>@item.idtiposucursal</td>
+                                    <td>@item.direccion</td>
+                                    <td>@item.telefono</td>
+                                    <td>@item.horario</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">No hay ciudades registradas aún.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    private SucursalModel sucursal = new();
+    private List<CiudadModel> ciudades = new();
+    private List<TipoSucursalModel> tipos = new();
+    private string? mensaje;
+    protected override async Task OnInitializedAsync()
+    {
+        ciudades = await Http.GetFromJsonAsync<List<CiudadModel>>("http://localhost:3000/api/banco") ?? new();
+        tipos = await Http.GetFromJsonAsync<List<TipoSucursalModel>>("http://localhost:3000/api/banco/tipos") ?? new();
+
+    }
+    private async Task RegistrarSucursal()
+    {
+        var response = await Http.PostAsJsonAsync("http://localhost:3000/api/banco/sucursal", sucursal);
+        if (response.IsSuccessStatusCode)
+        {
+            mensaje = "¡Sucursal registrada exitosamente!";
+            sucursal = new();
+        }
+        else
+        {
+            mensaje = "Error al registrar sucursal.";
+        }
+    }
+    private List<SucursalModel> sucursalesregistradas = new();
+    private async Task SucursalesRegistradas()
+    {
+        try
+        {
+            sucursalesregistradas = await Http.GetFromJsonAsync<List<SucursalModel>>("http://localhost:3000/api/banco/sucursales") ?? new();
+            Console.WriteLine(ciudades);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener sucursales: {ex.Message}");
+        }
+    }
+    
+    private async Task Listas()
+    {
+        try
+        {
+            ciudades = await Http.GetFromJsonAsync<List<CiudadModel>>("http://localhost:3000/api/banco") ?? new();
+            tipos = await Http.GetFromJsonAsync<List<TipoSucursalModel>>("http://localhost:3000/api/banco/tipos") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener ciudades: {ex.Message}");
+        }
+    }
+}
